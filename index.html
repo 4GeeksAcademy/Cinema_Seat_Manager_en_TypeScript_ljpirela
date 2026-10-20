@@ -1,26 +1,138 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World with Typescript</title>
+    <title>Cinema Seat Manager - Taquilla Interactiva</title>
+    <!-- Tailwind CSS CDN + estilos locales de la plantilla -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body class="min-h-screen bg-slate-100 text-slate-900">
-    <main class="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-6 p-6">
-      <h1 class="text-4xl font-bold tracking-tight">Hello World with Typescript</h1>
+  <body class="min-h-screen bg-slate-900 text-slate-800 py-8 px-4 flex flex-col items-center">
+    <!-- Contenedor Principal -->
+    <main class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-6 md:p-8">
+      <!-- Encabezado y Contadores -->
+      <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5 mb-6">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 mt-2">
+            🎟️ Cinema Seat Manager
+          </h1>
+          <p class="text-sm text-slate-500 mt-1">
+            Haz clic en cualquier asiento libre (<strong class="text-emerald-700">L</strong>) para reservarlo o busca 2 asientos contiguos.
+          </p>
+        </div>
 
-      <section class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <img
-          src="/rigo-baby.jpg"
-          alt="Hello Rigo"
-          class="h-64 w-full bg-slate-50 object-contain p-2"
-        />
-        <div class="p-5">
-          <h2 class="text-xl font-semibold text-slate-900">Hello Rigo</h2>
-          <p id="app" class="mt-2 text-sm text-slate-600"></p>
+        <!-- Tarjetas de Conteo -->
+        <div class="flex items-center gap-3 self-start md:self-auto">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2 text-center">
+            <span class="block text-xs font-semibold text-emerald-700">Disponibles (L)</span>
+            <span id="available-count" class="text-2xl font-extrabold text-emerald-800">0</span>
+          </div>
+          <div class="bg-rose-50 border border-rose-200 rounded-xl px-4 py-2 text-center">
+            <span class="block text-xs font-semibold text-rose-700">Ocupados (X)</span>
+            <span id="occupied-count" class="text-2xl font-extrabold text-rose-800">0</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Barra de Acciones y Escenarios de Prueba -->
+      <section class="mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <button
+            id="btn-find-adjacent"
+            type="button"
+            class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm px-4 py-2.5 rounded-xl shadow-sm transition cursor-pointer flex items-center gap-2"
+          >
+            <span>🔍 Buscar 2 Asientos Contiguos</span>
+          </button>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-xs font-semibold text-slate-400 mr-1">Escenarios:</span>
+            <button
+              id="btn-scenario-empty"
+              type="button"
+              class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+            >
+              1. Sala Vacía
+            </button>
+            <button
+              id="btn-scenario-partial"
+              type="button"
+              class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+            >
+              2. Parcial
+            </button>
+            <button
+              id="btn-scenario-single"
+              type="button"
+              class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+            >
+              3. Casi Llena (Sueltos)
+            </button>
+            <button
+              id="btn-scenario-full"
+              type="button"
+              class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+            >
+              4. Llena
+            </button>
+          </div>
+        </div>
+
+        <!-- Banner de Notificaciones / Validación -->
+        <div
+          id="status-message"
+          class="mb-6 p-4 rounded-xl border text-sm font-medium bg-slate-100 border-slate-300 text-slate-700 transition-all"
+        >
+          👋 Bienvenido a la taquilla. Selecciona un asiento libre (L) en el mapa para reservarlo.
+        </div>
+      </section>
+
+      <!-- Pantalla del Cine (SCREEN) -->
+      <section class="flex flex-col items-center">
+        <div class="w-4/5 max-w-md mb-6">
+          <div
+            class="w-full h-7 bg-stone-200 border-b-4 border-stone-300 rounded-t-sm flex items-center justify-center text-xs font-bold tracking-[0.35em] text-stone-600 shadow-inner"
+            style="clip-path: polygon(0 0, 100% 0, 92% 100%, 8% 100%)"
+          >
+            SCREEN
+          </div>
+        </div>
+
+        <!-- Cuadrícula de Asientos (8 filas x 10 columnas) -->
+        <div class="overflow-x-auto w-full flex flex-col items-center pb-2">
+          <!-- Encabezado de Columnas (0 - 9) -->
+          <div id="col-headers" class="flex items-center justify-center gap-2 mb-1"></div>
+
+          <!-- Filas de Asientos (0 - 7) -->
+          <div id="seat-grid" class="flex flex-col gap-2"></div>
+        </div>
+
+        <!-- Leyenda inferior idéntica al diagrama del reto -->
+        <div class="mt-8 pt-5 border-t border-slate-200 w-full flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-600">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-md border-2 border-emerald-400 bg-emerald-50 text-emerald-800 font-bold flex items-center justify-center">
+              L
+            </span>
+            <span>Available (0)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-md border-2 border-rose-300 bg-rose-50 text-rose-700 font-bold flex items-center justify-center">
+              X
+            </span>
+            <span>Occupied (1)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-md border-2 border-amber-500 bg-amber-200 text-amber-950 font-extrabold flex items-center justify-center">
+              L
+            </span>
+            <span>Adjacent pair</span>
+          </div>
         </div>
       </section>
     </main>
+
+    <!-- Conexión con nuestro archivo TypeScript -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
